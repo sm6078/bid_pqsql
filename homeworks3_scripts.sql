@@ -34,7 +34,7 @@ do $$
 	  			prefix := 'company_';	
 	        end if;
             name_table := prefix || result_row.product_type;
-			execute format ('create table if not exists %I (id serial primary key, client_name VARCHAR(100), amount NUMERIC(12,2));', name_table);
+			execute format ('create table if not exists %I (id serial primary key, client_name varchar(100), amount numeric(12,2));', name_table);
             execute format ('insert into %I (client_name, amount) 
 				select client_name, amount from bid 
 				where product_type = $1 
