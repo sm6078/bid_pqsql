@@ -51,18 +51,33 @@ $$
 -- необходимо выбрать id клиента и (сумму кредита * базовую ставку) / 365 для компаний
 -- необходимо выбрать id клиента и (сумму кредита * (базовую ставку + 0.05) / 365 для физ лиц
 --4. Печатает на экран общую сумму начисленных процентов в таблице
+
 do $$
   declare
-    result_row record;   
+    result_row record;  
+    base_rate numeric(2,2) := 0.1;	
+	count_days int := 365;
+	coefficient numeric(2,2) := 0.05;	
+    result_amount NUMERIC(12,2) := 0.0; 
+    total NUMERIC(12,2) := 0.0; 
+    
   begin  
 	execute 'create table if not exists credit_percent(client_name varchar(100), amount_accruals numeric(12,2))';	                                
-    
-  end;
+	for result_row in (select client_name, amount from person_credit) loop					
+            result_amount := (result_row.amount * (base_rate + coefficient)) / count_days;
+            total = total + result_amount;
+			insert into credit_percent(client_name, amount_accruals) values (result_row.client_name, result_amount);			
+	end loop;	
+
+    for result_row in (select client_name, amount from company_credit) loop					
+            result_amount := (result_row.amount * base_rate) / count_days;
+            total = total + result_amount;
+			insert into credit_percent(client_name, amount_accruals) values (result_row.client_name, result_amount);			
+	end loop;	
+  raise notice 'общая сумма начисленных процентов %', total;
+  raise notice 'общая сумма начисленных процентов в таблице % ', (select sum(amount_accruals) from credit_percent);
+  end;    
 $$
-
-
-
-
 
 
 --Скрипт №3 - Разделение ответственности. 
